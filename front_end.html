@@ -1,53 +1,140 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Review System</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spirit Reviews</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { background-color: #111827; color: #fff; font-family: sans-serif; }
+    .review-card { background-color: #1f2937; }
+    .star { cursor: pointer; }
+  </style>
 </head>
-<body>
-  <h2>Submit a Review</h2>
-  <form id="reviewForm">
-    <input type="text" id="name" placeholder="Your name" required><br>
-    <textarea id="message" placeholder="Your review" required></textarea><br>
-    <button type="submit">Submit</button>
-  </form>
+<body class="p-6">
 
-  <h2>Approved Reviews</h2>
-  <ul id="reviewsList"></ul>
+  <!-- Header -->
+  <header class="mb-8 text-center">
+    <h1 class="text-4xl font-bold text-orange-500">Spirit Reviews</h1>
+    <p class="text-gray-400">Share and explore reviews of your favorite spirits 🍸</p>
+  </header>
 
+  <!-- Reviews Section -->
+  <section class="mb-10">
+    <h2 class="text-2xl font-semibold mb-4">Approved Reviews</h2>
+    <div id="reviewsList" class="space-y-6"></div>
+  </section>
+
+  <!-- Add Review Form -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-4">Add Your Review</h2>
+    <form id="reviewForm" class="space-y-4 bg-gray-800 p-6 rounded-xl">
+      <input type="text" id="spiritName" placeholder="Spirit name" required
+        class="w-full p-2 rounded bg-gray-700 text-white" />
+
+      <input type="text" id="reviewerName" placeholder="Your name" required
+        class="w-full p-2 rounded bg-gray-700 text-white" />
+
+      <!-- Star Rating -->
+      <div>
+        <p class="mb-2">Your Rating:</p>
+        <div id="newReviewStars" data-rating="0" class="flex space-x-2">
+          <span class="star text-2xl text-gray-400" data-value="1">★</span>
+          <span class="star text-2xl text-gray-400" data-value="2">★</span>
+          <span class="star text-2xl text-gray-400" data-value="3">★</span>
+          <span class="star text-2xl text-gray-400" data-value="4">★</span>
+          <span class="star text-2xl text-gray-400" data-value="5">★</span>
+        </div>
+        <p id="newRatingDisplay" class="text-sm text-gray-400">Select a rating</p>
+      </div>
+
+      <textarea id="reviewText" rows="4" placeholder="Write your review..." required
+        class="w-full p-2 rounded bg-gray-700 text-white"></textarea>
+
+      <button type="submit"
+        class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded">
+        Submit Review
+      </button>
+    </form>
+  </section>
+
+  <!-- Scripts -->
   <script>
+    // Supabase client (publishable key only)
     const SUPABASE_URL = "https://ovbztgieikmpuyenepnu.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92Ynp0Z2llaWttcHV5ZW5lcG51Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3Mzk4MjgsImV4cCI6MjA3MjMxNTgyOH0.oVz5i0lq3sbpn4i0DPSc9aG3LiWdYUuzC4A6ZsA_8iE"; 
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const SUPABASE_KEY = "sb_publishable_Ubi8itSbdE8RLPQiy5dMfA_Bk0YGWhp";
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Submit review
+    // ⭐ Star rating
+    document.querySelectorAll("#newReviewStars .star").forEach(star => {
+      star.addEventListener("click", () => {
+        const rating = star.dataset.value;
+        document.getElementById("newReviewStars").dataset.rating = rating;
+        document.getElementById("newRatingDisplay").textContent = `Selected: ${rating} stars`;
+
+        document.querySelectorAll("#newReviewStars .star").forEach(s => {
+          s.classList.toggle("text-yellow-400", s.dataset.value <= rating);
+          s.classList.toggle("text-gray-400", s.dataset.value > rating);
+        });
+      });
+    });
+
+    // 📌 Submit review
     document.getElementById("reviewForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const name = document.getElementById("name").value;
-      const message = document.getElementById("message").value;
 
-      let { error } = await supabase.from("reviews").insert([{ name, message }]);
+      const spirit = document.getElementById("spiritName").value;
+      const reviewer = document.getElementById("reviewerName").value;
+      const rating = document.getElementById("newReviewStars").dataset.rating || 0;
+      const text = document.getElementById("reviewText").value;
+
+      const { error } = await supabase
+        .from("reviews")
+        .insert([{ 
+          spirit_name: spirit, 
+          reviewer_name: reviewer, 
+          rating: rating, 
+          review: text, 
+          approved: false 
+        }]);
+
       if (error) {
-        alert("Error: " + error.message);
+        alert("❌ Error: " + error.message);
       } else {
-        alert("Review submitted! Waiting for approval.");
+        alert("✅ Review submitted! Awaiting approval.");
         e.target.reset();
+        document.getElementById("newRatingDisplay").textContent = "Select a rating";
+        document.getElementById("newReviewStars").dataset.rating = 0;
       }
     });
 
-    // Fetch approved reviews
+    // 📌 Load approved reviews
     async function loadReviews() {
-      let { data, error } = await supabase.from("reviews").select("*").order("created_at", { ascending: false });
-      if (!error) {
-        const list = document.getElementById("reviewsList");
-        list.innerHTML = "";
-        data.forEach(r => {
-          const li = document.createElement("li");
-          li.textContent = `${r.name}: ${r.message}`;
-          list.appendChild(li);
-        });
+      const { data, error } = await supabase
+        .from("reviews")
+        .select("*")
+        .eq("approved", true)
+        .order("id", { ascending: false });
+
+      if (error) {
+        console.error(error);
+        return;
       }
+
+      const list = document.getElementById("reviewsList");
+      list.innerHTML = "";
+
+      data.forEach(r => {
+        const div = document.createElement("div");
+        div.className = "review-card rounded-xl p-6";
+        div.innerHTML = `
+          <h3 class="text-xl font-bold text-orange-500">${r.spirit_name}</h3>
+          <p class="text-gray-300 mt-2">${r.review}</p>
+          <p class="text-sm text-gray-400 mt-2">– ${r.reviewer_name}, ⭐ ${r.rating}</p>
+        `;
+        list.appendChild(div);
+      });
     }
 
     loadReviews();
