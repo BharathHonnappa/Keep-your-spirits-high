@@ -373,49 +373,62 @@
   </section>
 
   <!-- Contact -->
-  <section id="contact" class="section flex items-center">
+    <section id="contact" class="section flex items-center">
     <div class="container mx-auto px-6">
-      <div class="max-w-4xl mx-auto">
-        <h2 class="text-4xl font-bold text-center mb-12">Get In <span class="text-orange-500">Touch</span></h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-          <div>
-            <h3 class="text-2xl font-bold mb-6 text-orange-500">Contact Information</h3>
-            <div class="space-y-4">
-              <div class="flex items-center"><i data-feather="mail" class="w-6 h-6 text-orange-500 mr-4"></i><span class="text-gray-300">hello@spiritreviews.com</span></div>
-              <div class="flex items-center"><i data-feather="phone" class="w-6 h-6 text-orange-500 mr-4"></i><span class="text-gray-300">+1 (555) 123-4567</span></div>
-              <div class="flex items-center"><i data-feather="map-pin" class="w-6 h-6 text-orange-500 mr-4"></i><span class="text-gray-300">123 Spirit Street, Tasting City</span></div>
-            </div>
-            <div class="mt-8">
-              <h4 class="text-xl font-bold mb-4 text-orange-500">Follow Us</h4>
-              <div class="flex space-x-4">
-                <a href="#" class="text-gray-300 hover:text-orange-400"><i data-feather="facebook" class="w-6 h-6"></i></a>
-                <a href="#" class="text-gray-300 hover:text-orange-400"><i data-feather="twitter" class="w-6 h-6"></i></a>
-                <a href="#" class="text-gray-300 hover:text-orange-400"><i data-feather="instagram" class="w-6 h-6"></i></a>
-              </div>
-            </div>
-          </div>
+        <div class="max-w-2xl mx-auto">
+        <h2 class="text-4xl font-bold text-center mb-12">
+            Get In <span class="text-orange-500">Touch</span>
+        </h2>
 
-          <div class="contact-form rounded-xl p-8">
+        <div class="contact-form rounded-xl p-8 bg-gray-900 shadow-lg">
             <h3 class="text-2xl font-bold mb-6 text-orange-500">Send us a Message</h3>
 
             <!-- Web3Forms: replace access_key with your real one -->
             <form id="contactForm" action="https://api.web3forms.com/submit" method="POST" class="space-y-4">
-              <input type="hidden" name="access_key" value="a06e983c-e088-49c2-b912-f3b313d1c242">
-              <input type="text"   name="name"    placeholder="Your Name"   class="form-input p-3 rounded-lg w-full" required>
-              <input type="email"  name="email"   placeholder="Your Email"  class="form-input p-3 rounded-lg w-full" required>
-              <input type="text"   name="subject" placeholder="Subject"     class="form-input p-3 rounded-lg w-full" required>
-              <textarea name="message" placeholder="Your Message" class="form-input p-3 rounded-lg w-full h-32 resize-none" required></textarea>
-              <button type="submit" class="btn-primary text-white font-bold py-3 px-6 rounded-full w-full">Send Message</button>
+            <input type="hidden" name="access_key" value="a06e983c-e088-49c2-b912-f3b313d1c242">
+
+            <input 
+                type="text" 
+                name="name" 
+                placeholder="Your Name" 
+                class="form-input p-3 rounded-lg w-full" 
+                required>
+
+            <input 
+                type="email" 
+                name="email" 
+                placeholder="Your Email" 
+                class="form-input p-3 rounded-lg w-full" 
+                required>
+
+            <input 
+                type="text" 
+                name="subject" 
+                placeholder="Subject" 
+                class="form-input p-3 rounded-lg w-full" 
+                required>
+
+            <textarea 
+                name="message" 
+                placeholder="Your Message" 
+                class="form-input p-3 rounded-lg w-full h-32 resize-none" 
+                required></textarea>
+
+            <button 
+                type="submit" 
+                class="btn-primary text-white font-bold py-3 px-6 rounded-full w-full">
+                Send Message
+            </button>
             </form>
 
             <div id="successMessage" class="hidden mt-4 p-4 bg-green-600 text-white rounded-lg">
-              ✅ Thank you! Your message has been sent successfully.
+            ✅ Thank you! Your message has been sent successfully.
             </div>
-          </div>
         </div>
-      </div>
+        </div>
     </div>
-  </section>
+    </section>
+
 
   <!-- Footer -->
   <footer class="bg-black/80 border-t border-orange-500/20 py-12">
