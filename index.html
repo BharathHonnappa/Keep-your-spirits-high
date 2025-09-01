@@ -3,159 +3,917 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alcohol Reviews</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Spirit Reviews</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        body {
+            background-color: #000;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+        
+        .wave-bg {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: -1;
+            background: linear-gradient(to top, #000 0%, transparent 30%);
+        }
+        
+        canvas {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+        
+        .nav-link {
+            position: relative;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background-color: #f97316;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .review-card {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(249, 115, 22, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .review-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(249, 115, 22, 0.3);
+        }
+        
+        .star {
+            color: #6b7280;
+            cursor: pointer;
+            transition: color 0.2s;
+            font-size: 1.2rem;
+        }
+        
+        .star.active {
+            color: #fbbf24;
+        }
+        
+        .star:hover {
+            color: #fbbf24;
+        }
+        
+        .section {
+            min-height: 100vh;
+            padding-top: 80px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #f97316, #f59e0b);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(249, 115, 22, 0.4);
+        }
+        
+        .heading-highlight {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .heading-highlight::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 10px;
+            bottom: 5px;
+            left: 0;
+            background-color: rgba(249, 115, 22, 0.3);
+            z-index: -1;
+        }
+        
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -3;
+        }
+        
+        .particle {
+            position: absolute;
+            background: rgba(249, 115, 22, 0.1);
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        .contact-form {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+        }
+        
+        .form-input {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            color: white;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-input:focus {
+            border-color: #f97316;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+        }
+        
+        .rating-display {
+            font-size: 0.9rem;
+            margin-left: 10px;
+            color: #9ca3af;
+        }
+    </style>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+    const form = document.getElementById("contactForm");
+    const toast = document.getElementById("toast");
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        let data = new FormData(form);
+
+        let res = await fetch(form.action, {
+        method: "POST",
+        body: data
+        });
+
+        if (res.ok) {
+        showToast("✅ Message sent successfully!", "success");
+        form.reset();
+        } else {
+        showToast("❌ Something went wrong. Please try again.", "error");
+        }
+    });
+
+    function showToast(message, type) {
+        toast.textContent = message;
+        toast.className = "toast show " + type;
+
+        setTimeout(() => {
+        toast.className = "toast " + type;
+        }, 3000);
+    }
+    </script>
+
+    <style>
+    .toast {
+        visibility: hidden;
+        min-width: 250px;
+        max-width: 300px;
+        margin: 0;
+        background: #333;
+        color: #fff;
+        text-align: left;
+        border-radius: 8px;
+        padding: 12px 20px;
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 9999;
+        font-size: 15px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.3s, transform 0.3s;
+    }
+
+    .toast.show {
+        visibility: visible;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .toast.success { background: #16a34a; } /* green */
+    .toast.error { background: #dc2626; }   /* red */
+    </style>
+
 </head>
 <body>
-    <header>
-        <h1>Hunt your Spirits</h1>
-    </header>
-    <div class="container">
-        <div class="sidebar">
-            <div class="module add-product">
-                <div class="row">
-                    <div class="col-5"></div>
-                    <div class="col-7">
-                        <p class="add-product-p">Have something new for us?</p>
-                        <a class="btn btn-primary btn-sidebar" href="javascript:void(0)">Add Your Product</a>
+    <div class="wave-bg"></div>
+    <canvas id="waveCanvas"></canvas>
+    <div class="floating-particles" id="particles"></div>
+    
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 bg-black bg-opacity-80 backdrop-filter backdrop-blur-lg z-50 border-b border-orange-500 border-opacity-20">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <a href="#" class="text-2xl font-bold text-orange-500">SpiritReviews</a>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#home" class="nav-link text-white hover:text-orange-400">Home</a>
+                    <a href="#about" class="nav-link text-white hover:text-orange-400">About</a>
+                    <a href="#Expertise" class="nav-link text-white hover:text-orange-400">Expertise</a>
+                    <a href="#Reviews" class="nav-link text-white hover:text-orange-400">Reviews</a>
+                    <a href="#contact" class="nav-link text-white hover:text-orange-400">Contact</a>
+                </div>
+                <button id="menuToggle" class="md:hidden text-white focus:outline-none">
+                    <i data-feather="menu"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="fixed inset-0 bg-black bg-opacity-90 z-40 hidden">
+        <div class="flex flex-col items-center justify-center h-full space-y-8">
+            <a href="#home" class="text-2xl text-white hover:text-orange-400 mobile-link">Home</a>
+            <a href="#about" class="text-2xl text-white hover:text-orange-400 mobile-link">About</a>
+            <a href="#Expertise" class="text-2xl text-white hover:text-orange-400 mobile-link">Expertise</a>
+            <a href="#Reviews" class="text-2xl text-white hover:text-orange-400 mobile-link">Reviews</a>
+            <a href="#contact" class="text-2xl text-white hover:text-orange-400 mobile-link">Contact</a>
+            <button id="closeMenu" class="absolute top-6 right-6 text-white">
+                <i data-feather="x"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Home Section -->
+    <section id="home" class="section flex items-center justify-center">
+        <div class="container mx-auto px-6 text-center">
+            <h1 class="text-5xl md:text-7xl font-bold mb-6 animate-pulse">
+                <span class="text-orange-500">Hunt</span> Your <span class="heading-highlight">Spirits</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-300 mb-10 max-w-3xl mx-auto">
+                Discover the finest spirits with honest reviews from enthusiasts around the world.
+            </p>
+            <a href="#Reviews" class="btn-primary text-white font-bold py-3 px-8 rounded-full inline-block">
+                Explore Reviews
+            </a>
+        </div>
+    </section>
+    
+    <!-- About Section -->
+    <section id="about" class="section flex items-center">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-10 md:mb-0">
+                    <h2 class="text-4xl font-bold mb-6">
+                        About <span class="text-orange-500">Us</span>
+                    </h2>
+                    <p class="text-lg text-gray-300 mb-6">
+                        We're passionate about spirits and dedicated to bringing you honest, detailed reviews of the best alcoholic beverages from around the world.
+                    </p>
+                    <p class="text-lg text-gray-300 mb-6">
+                        Our team consists of experienced tasters and mixologists who know what makes a great spirit stand out.
+                    </p>
+                    <p class="text-lg text-gray-300">
+                        Whether you're a connoisseur or just starting your journey into the world of spirits, we've got something for you.
+                    </p>
+                </div>
+                <div class="md:w-1/2 flex justify-center">
+                    <div class="relative w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden border-4 border-orange-500">
+                        <div class="absolute inset-0 bg-gradient-to-br from-orange-500 to-amber-600 opacity-70"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i data-feather="award" class="w-32 h-32 text-white"></i>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="module" id="MiddleGads"></div>
         </div>
-        <div class="latest-right-panel">
-            <canvas id="waveCanvas"></canvas>
-            <div class="reviews-content">
-                <div class="heading_green">
-                    <h1 class="latest-title">"Let's keep our spirits high"</h1>
+    </section>
+    
+    <!-- Expertise Section -->
+    <section id="Expertise" class="section">
+        <div class="container mx-auto px-6 py-20">
+            <h2 class="text-4xl font-bold text-center mb-16">
+                Our <span class="text-orange-500">Expertise</span>
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="review-card p-8 rounded-xl">
+                    <div class="text-orange-500 mb-4">
+                        <i data-feather="eye" class="w-10 h-10"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Visual Analysis</h3>
+                    <p class="text-gray-300">
+                        We examine color, clarity, viscosity, and other visual characteristics that indicate quality and aging.
+                    </p>
                 </div>
-                <!-- Patron Tequila -->
-                <div class="latest-review-box" data-id="tequila">
-                    <div class="latest-prod-img-holder">
-                        <div class="latest-prod-img">
-                            <a href="#" target="_blank">
-                                <img src="https://imgs.search.brave.com/5HMl_a7edqoQ1x3fabBxdPSHbmZoiP0BSJCnIHEP_Ck/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly93d3cu/cGF0cm9udGVxdWls/YS5jb20vYmluYXJp/ZXMvbW9iaWxlL2Nv/bnRlbnQvZ2FsbGVy/eS9wYXRyb250ZXF1/aWxhL3Byb2R1Y3Rz/L3BhdHJvbi1zaWx2/ZXIvdjMvYm90dGxl/LnBuZw" class="img_tn" alt="Patron Tequila Photo" />
-                            </a>
-                        </div>
+                <div class="review-card p-8 rounded-xl">
+                    <div class="text-orange-500 mb-4">
+                        <i data-feather="smile" class="w-10 h-10"></i>
                     </div>
-                    <div class="latest-prod-details">
-                        <a class="product-title" href="#" target="_blank">Patron Tequila</a>
-                        <div class="review-info">
-                            <span class="stars" data-rating="0">
-                                <span class="star icon-rating unrated-star" data-value="1">★</span>
-                                <span class="star icon-rating unrated-star" data-value="2">★</span>
-                                <span class="star icon-rating unrated-star" data-value="3">★</span>
-                                <span class="star icon-rating unrated-star" data-value="4">★</span>
-                                <span class="star icon-rating unrated-star" data-value="5">★</span>
-                            </span>
-                        </div>
-                        <div class="average-rating">Average Rating: Not yet rated</div>
-                        <div class="latest-review-content">
-                            Patron Tequila is a game-changer. Its smooth agave flavor with a hint of citrus makes it perfect for sipping or mixing in margaritas. A bit pricey, but worth it for the quality.
-                        </div>
-                        <div class="read-review-comment">
-                            <a href="#" class="pull-left read-review" data-link="https://www.patrontequila.com">Read complete review</a>
-                            <a href="#" class="pull-right comment-link">Comments 0</a>
-                        </div>
-                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Aroma Evaluation</h3>
+                    <p class="text-gray-300">
+                        Our team identifies subtle aromas and bouquet complexity that define a spirit's character.
+                    </p>
                 </div>
-
-                <!-- Bombay Sapphire Gin -->
-                <div class="latest-review-box" data-id="gin">
-                    <div class="latest-prod-img-holder">
-                        <div class="latest-prod-img">
-                            <a href="#" target="_blank" title="Bombay Sapphire Gin">
-                                <img src="https://imgs.search.brave.com/OSCDK_Kb0QnuMvrnivA_QYmaxt1y8mrfY7ALgBp4V6U/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9kM2Ji/ZDZlczJ5M2N0ay5j/bG91ZGZyb250Lm5l/dC93cC1jb250ZW50/L3VwbG9hZHMvMjAy/MC8wNi8wMjEwNDUw/Mi9Cb3R0bGVfQm9t/YmF5X1NhcHBoaXJl/X0NvcmUucG5n" class="img_tn" alt="Bombay Sapphire Gin Photo" />
-                            </a>
-                        </div>
+                <div class="review-card p-8 rounded-xl">
+                    <div class="text-orange-500 mb-4">
+                        <i data-feather="heart" class="w-10 h-10"></i>
                     </div>
-                    <div class="latest-prod-details">
-                        <a class="product-title" href="#" target="_blank">Bombay Sapphire Gin</a>
-                        <div class="review-info">
-                            <span class="stars" data-rating="0">
-                                <span class="star icon-rating unrated-star" data-value="1">★</span>
-                                <span class="star icon-rating unrated-star" data-value="2">★</span>
-                                <span class="star icon-rating unrated-star" data-value="3">★</span>
-                                <span class="star icon-rating unrated-star" data-value="4">★</span>
-                                <span class="star icon-rating unrated-star" data-value="5">★</span>
-                            </span>
-                        </div>
-                        <div class="average-rating">Average Rating: Not yet rated</div>
-                        <div class="latest-review-content">
-                            The botanicals in Bombay Sapphire make every sip a delight. Perfect for a classic G&T, with juniper and citrus notes that shine through. Highly recommend!
-                        </div>
-                        <div class="read-review-comment">
-                            <a href="#" class="pull-left read-review" data-link="https://www.bombaysapphire.com">Read complete review</a>
-                            <a href="#" class="pull-right comment-link">Comments 0</a>
-                        </div>
-                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Taste Profiling</h3>
+                    <p class="text-gray-300">
+                        We analyze flavor balance, finish, mouthfeel, and overall drinking experience.
+                    </p>
                 </div>
-
-                <!-- Captain Morgan Rum -->
-                <div class="latest-review-box" data-id="rum">
-                    <div class="latest-prod-img-holder">
-                        <div class="latest-prod-img">
-                            <a href="#" target="_blank" title="Captain Morgan Rum">
-                                <img src="https://imgs.search.brave.com/8XyZkFy4zHPmjhRIRDHiyxTPP6LNUs8lOKzZ8BsFlxs/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90aHVt/YnMuZHJlYW1zdGlt/ZS5jb20vYi9ydW0t/Y2FwdGFpbi1tb3Jn/YW4tYmxhY2stc3Bp/Y2VkLWJsYWNrLWJh/Y2tncm91bmQtcnVz/c2lhLXN0LXJ1bS1j/YXB0YWluLW1vcmdh/bi1ibGFjay1zcGlj/ZWQtYmxhY2stYmFj/a2dyb3VuZC1ydXNz/aWEtc3QtMTA5Mzg5/OTI4LmpwZw" class="img_tn" alt="Captain Morgan Rum Photo" />
-                            </a>
-                        </div>
-                    </div>
-                    <div class="latest-prod-details">
-                        <a class="product-title" href="#" target="_blank">Captain Morgan Rum</a>
-                        <div class="review-info">
-                            <span class="stars" data-rating="0">
-                                <span class="star icon-rating unrated-star" data-value="1">★</span>
-                                <span class="star icon-rating unrated-star" data-value="2">★</span>
-                                <span class="star icon-rating unrated-star" data-value="3">★</span>
-                                <span class="star icon-rating unrated-star" data-value="4">★</span>
-                                <span class="star icon-rating unrated-star" data-value="5">★</span>
-                            </span>
-                        </div>
-                        <div class="average-rating">Average Rating: Not yet rated</div>
-                        <div class="latest-review-content">
-                            Captain Morgan is decent for the price. The spiced flavor is bold, but it can be a bit too sweet for some cocktails. Great for casual drinks with cola.
-                        </div>
-                        <div class="read-review-comment">
-                            <a href="#" class="pull-left read-review" data-link="https://www.captainmorgan.com">Read complete review</a>
-                            <a href="#" class="pull-right comment-link">Comments 0</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Jack Daniel's Whiskey -->
-                <div class="latest-review-box" data-id="whiskey">
-                    <div class="latest-prod-img-holder">
-                        <div class="latest-prod-img">
-                            <a href="#" target="_blank" title="Jack Daniel's Whiskey">
-                                <img src="https://imgs.search.brave.com/GEcVqIirSsw70QmSFLoftVftzebWSKWXrV5T3q0exR4/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzLzI1L2Qy/LzAzLzI1ZDIwMzEw/NTI4NWZjYzFhMzQ2/MDFlZDlhNGM2YWVm/LmpwZw" class="img_tn" alt="Jack Daniel's Whiskey Photo" />
-                            </a>
-                        </div>
-                    </div>
-                    <div class="latest-prod-details">
-                        <a class="product-title" href="#" target="_blank">Jack Daniel's Whiskey</a>
-                        <div class="review-info">
-                            <span class="stars" data-rating="0">
-                                <span class="star icon-rating unrated-star" data-value="1">★</span>
-                                <span class="star icon-rating unrated-star" data-value="2">★</span>
-                                <span class="star icon-rating unrated-star" data-value="3">★</span>
-                                <span class="star icon-rating unrated-star" data-value="4">★</span>
-                                <span class="star icon-rating unrated-star" data-value="5">★</span>
-                            </span>
-                        </div>
-                        <div class="average-rating">Average Rating: Not yet rated</div>
-                        <div class="latest-review-content">
-                            Jack Daniel’s never disappoints. Its caramel and vanilla notes make it smooth on the rocks or in a whiskey sour. A staple for any bar.
-                        </div>
-                        <div class="read-review-comment">
-                            <a href="#" class="pull-left read-review" data-link="https://www.jackdaniels.com">Read complete review</a>
-                            <a href="#" class="pull-right comment-link">Comments 0</a>
-                        </div>
-                    </div>
-                </div>
-            </div><h>Hey thank's for visiting 
-                - Bharath</h>
+            </div>
         </div>
-    </div>
-    <script src="script.js"></script>
+    </section>
+    
+    <!-- Reviews (Reviews) Section -->
+    <section id="Reviews" class="section pt-20">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center mb-6">
+                Latest <span class="text-orange-500">Reviews</span>
+            </h2>
+            <p class="text-xl text-center text-gray-300 mb-12 max-w-3xl mx-auto">
+                "Let's keep our spirits high"
+            </p>
+            
+            <!-- Patron Tequila -->
+            <div class="review-card rounded-xl overflow-hidden mb-8 flex flex-col md:flex-row">
+                <div class="md:w-1/3 p-6 flex items-center justify-center bg-black bg-opacity-30">
+                    <img src="https://imgs.search.brave.com/5HMl_a7edqoQ1x3fabBxdPSHbmZoiP0BSJCnIHEP_Ck/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly93d3cu/cGF0cm9udGVxdWls/YS5jb20vYmluYXJp/ZXMvbW9iaWxlL2Nv/bnRlbnQvZ2FsbGVy/eS9wYXRyb250ZXF1/aWxhL3Byb2R1Y3Rz/L3BhdHJvbi1zaWx2/ZXIvdjMvYm90dGxl/LnBuZw" 
+                         alt="Patron Tequila" 
+                         class="w-48 h-48 object-contain">
+                </div>
+                <div class="md:w-2/3 p-8">
+                    <h3 class="text-2xl font-bold mb-2 text-orange-500">Patron Tequila</h3>
+                    <div class="flex items-center mb-4">
+                        <div class="stars-container" data-rating="0">
+                            <span class="star" data-value="1">★</span>
+                            <span class="star" data-value="2">★</span>
+                            <span class="star" data-value="3">★</span>
+                            <span class="star" data-value="4">★</span>
+                            <span class="star" data-value="5">★</span>
+                        </div>
+                        <span class="rating-display">Not yet rated</span>
+                    </div>
+                    <p class="text-gray-300 mb-6">
+                        Patron Tequila is a game-changer. Its smooth agave flavor with a hint of citrus makes it perfect for sipping or mixing in margaritas. A bit pricey, but worth it for the quality.
+                    </p>
+                    <div class="flex justify-between items-center">
+                        <a href="https://www.patrontequila.com" class="text-orange-400 hover:text-orange-300 transition-colors">Read complete review</a>
+                        <span class="text-gray-400">Comments 0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bombay Sapphire Gin -->
+            <div class="review-card rounded-xl overflow-hidden mb-8 flex flex-col md:flex-row">
+                <div class="md:w-1/3 p-6 flex items-center justify-center bg-black bg-opacity-30">
+                    <img src="https://imgs.search.brave.com/OSCDK_Kb0QnuMvrnivA_QYmaxt1y8mrfY7ALgBp4V6U/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9kM2Ji/ZDZlczJ5M2N0ay5j/bG91ZGZyb250Lm5l/dC93cC1jb250ZW50/L3VwbG9hZHMvMjAy/MC8wNi8wMjEwNDUw/Mi9Cb3R0bGVfQm9t/YmF5X1NhcHBoaXJl/X0NvcmUucG5n" 
+                         alt="Bombay Sapphire Gin" 
+                         class="w-48 h-48 object-contain">
+                </div>
+                <div class="md:w-2/3 p-8">
+                    <h3 class="text-2xl font-bold mb-2 text-orange-500">Bombay Sapphire Gin</h3>
+                    <div class="flex items-center mb-4">
+                        <div class="stars-container" data-rating="0">
+                            <span class="star" data-value="1">★</span>
+                            <span class="star" data-value="2">★</span>
+                            <span class="star" data-value="3">★</span>
+                            <span class="star" data-value="4">★</span>
+                            <span class="star" data-value="5">★</span>
+                        </div>
+                        <span class="rating-display">Not yet rated</span>
+                    </div>
+                    <p class="text-gray-300 mb-6">
+                        The botanicals in Bombay Sapphire make every sip a delight. Perfect for a classic G&T, with juniper and citrus notes that shine through. Highly recommend!
+                    </p>
+                    <div class="flex justify-between items-center">
+                        <a href="https://www.bombaysapphire.com" class="text-orange-400 hover:text-orange-300 transition-colors">Read complete review</a>
+                        <span class="text-gray-400">Comments 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Captain Morgan Rum -->
+            <div class="review-card rounded-xl overflow-hidden mb-8 flex flex-col md:flex-row">
+                <div class="md:w-1/3 p-6 flex items-center justify-center bg-black bg-opacity-30">
+                    <img src="https://imgs.search.brave.com/8XyZkFy4zHPmjhRIRDHiyxTPP6LNUs8lOKzZ8BsFlxs/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90aHVt/YnMuZHJlYW1zdGlt/ZS5jb20vYi9ydW0t/Y2FwdGFpbi1tb3Jn/YW4tYmxhY2stc3Bp/Y2VkLWJsYWNrLWJh/Y2tncm91bmQtcnVz/c2lhLXN0LXJ1bS1j/YXB0YWluLW1vcmdh/bi1ibGFjay1zcGlj/ZWQtYmxhY2stYmFj/a2dyb3VuZC1ydXNz/aWEtc3QtMTA5Mzg5/OTI4LmpwZw" 
+                         alt="Captain Morgan Rum" 
+                         class="w-48 h-48 object-contain">
+                </div>
+                <div class="md:w-2/3 p-8">
+                    <h3 class="text-2xl font-bold mb-2 text-orange-500">Captain Morgan Rum</h3>
+                    <div class="flex items-center mb-4">
+                        <div class="stars-container" data-rating="0">
+                            <span class="star" data-value="1">★</span>
+                            <span class="star" data-value="2">★</span>
+                            <span class="star" data-value="3">★</span>
+                            <span class="star" data-value="4">★</span>
+                            <span class="star" data-value="5">★</span>
+                        </div>
+                        <span class="rating-display">Not yet rated</span>
+                    </div>
+                    <p class="text-gray-300 mb-6">
+                        Captain Morgan is decent for the price. The spiced flavor is bold, but it can be a bit too sweet for some cocktails. Great for casual drinks with cola.
+                    </p>
+                    <div class="flex justify-between items-center">
+                        <a href="https://www.captainmorgan.com" class="text-orange-400 hover:text-orange-300 transition-colors">Read complete review</a>
+                        <span class="text-gray-400">Comments 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jack Daniel's Whiskey -->
+            <div class="review-card rounded-xl overflow-hidden mb-8 flex flex-col md:flex-row">
+                <div class="md:w-1/3 p-6 flex items-center justify-center bg-black bg-opacity-30">
+                    <img src="https://imgs.search.brave.com/GEcVqIirSsw70QmSFLoftVftzebWSKWXrV5T3q0exR4/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzLzI1L2Qy/LzAzLzI1ZDIwMzEw/NTI4NWZjYzFhMzQ2/MDFlZDlhNGM2YWVm/LmpwZw" 
+                         alt="Jack Daniel's Whiskey" 
+                         class="w-48 h-48 object-contain">
+                </div>
+                <div class="md:w-2/3 p-8">
+                    <h3 class="text-2xl font-bold mb-2 text-orange-500">Jack Daniel's Whiskey</h3>
+                    <div class="flex items-center mb-4">
+                        <div class="stars-container" data-rating="0">
+                            <span class="star" data-value="1">★</span>
+                            <span class="star" data-value="2">★</span>
+                            <span class="star" data-value="3">★</span>
+                            <span class="star" data-value="4">★</span>
+                            <span class="star" data-value="5">★</span>
+                        </div>
+                        <span class="rating-display">Not yet rated</span>
+                    </div>
+                    <p class="text-gray-300 mb-6">
+                        Jack Daniel's never disappoints. Its caramel and vanilla notes make it smooth on the rocks or in a whiskey sour. A staple for any bar.
+                    </p>
+                    <div class="flex justify-between items-center">
+                        <a href="https://www.jackdaniels.com" class="text-orange-400 hover:text-orange-300 transition-colors">Read complete review</a>
+                        <span class="text-gray-400">Comments 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Your Review Section -->
+            <div class="review-card rounded-xl p-8 mt-12">
+                <h3 class="text-2xl font-bold mb-6 text-center text-orange-500">Add Your Review</h3>
+                <form id="reviewForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <input type="text" id="spiritName" placeholder="Spirit Name" class="form-input p-3 rounded-lg w-full" required>
+                        <input type="text" id="reviewerName" placeholder="Your Name" class="form-input p-3 rounded-lg w-full" required>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-gray-300">Rating:</span>
+                        <div class="stars-container" id="newReviewStars" data-rating="0">
+                            <span class="star" data-value="1">★</span>
+                            <span class="star" data-value="2">★</span>
+                            <span class="star" data-value="3">★</span>
+                            <span class="star" data-value="4">★</span>
+                            <span class="star" data-value="5">★</span>
+                        </div>
+                        <span class="rating-display" id="newRatingDisplay">Select a rating</span>
+                    </div>
+                    <textarea id="reviewText" placeholder="Share your thoughts about this spirit..." class="form-input p-3 rounded-lg w-full h-32 resize-none" required></textarea>
+                    <button type="submit" class="btn-primary text-white font-bold py-3 px-8 rounded-full w-full md:w-auto">
+                        Submit Review
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Contact Section -->
+    <section id="contact" class="section flex items-center">
+        <div class="container mx-auto px-6">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-4xl font-bold text-center mb-12">
+                    Get In <span class="text-orange-500">Touch</span>
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div>
+                        <h3 class="text-2xl font-bold mb-6 text-orange-500">Contact Information</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <i data-feather="mail" class="w-6 h-6 text-orange-500 mr-4"></i>
+                                <span class="text-gray-300">hello@spiritreviews.com</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i data-feather="phone" class="w-6 h-6 text-orange-500 mr-4"></i>
+                                <span class="text-gray-300">+1 (555) 123-4567</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i data-feather="map-pin" class="w-6 h-6 text-orange-500 mr-4"></i>
+                                <span class="text-gray-300">123 Spirit Street, Tasting City</span>
+                            </div>
+                        </div>
+                        <div class="mt-8">
+                            <h4 class="text-xl font-bold mb-4 text-orange-500">Follow Us</h4>
+                            <div class="flex space-x-4">
+                                <a href="#" class="text-gray-300 hover:text-orange-400 transition-colors">
+                                    <i data-feather="facebook" class="w-6 h-6"></i>
+                                </a>
+                                <a href="#" class="text-gray-300 hover:text-orange-400 transition-colors">
+                                    <i data-feather="twitter" class="w-6 h-6"></i>
+                                </a>
+                                <a href="#" class="text-gray-300 hover:text-orange-400 transition-colors">
+                                    <i data-feather="instagram" class="w-6 h-6"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="contact-form rounded-xl p-8">
+                        <h3 class="text-2xl font-bold mb-6 text-orange-500">Send us a Message</h3>
+                        <form id="contactForm" class="space-y-4">
+                            <input type="text" placeholder="Your Name" class="form-input p-3 rounded-lg w-full" required>
+                            <input type="email" placeholder="Your Email" class="form-input p-3 rounded-lg w-full" required>
+                            <input type="text" placeholder="Subject" class="form-input p-3 rounded-lg w-full" required>
+                            <textarea placeholder="Your Message" class="form-input p-3 rounded-lg w-full h-32 resize-none" required></textarea>
+                            <button type="submit" class="btn-primary text-white font-bold py-3 px-6 rounded-full w-full">
+                                Send Message
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="bg-black bg-opacity-80 border-t border-orange-500 border-opacity-20 py-12">
+        <div class="container mx-auto px-6">
+            <div class="text-center">
+                <h3 class="text-2xl font-bold text-orange-500 mb-4">Spirit Reviews</h3>
+                <p class="text-gray-300 mb-6">Hunt Your Spirits - Keep Your Spirits High</p>
+                <p class="text-gray-400 text-sm">
+                    Hey, thanks for visiting - Bharath
+                </p>
+                <p class="text-gray-500 text-xs mt-4">
+                    © 2025 Spirit Reviews. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Feather Icons
+        feather.replace();
+        
+        // Wave Animation
+        const canvas = document.getElementById('waveCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let waveOffset = 0;
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        function drawWave() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, 'rgba(249, 115, 22, 0.1)');
+            gradient.addColorStop(0.5, 'rgba(249, 115, 22, 0.05)');
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height);
+            
+            for (let x = 0; x <= canvas.width; x += 10) {
+                const y = canvas.height - 100 + Math.sin((x + waveOffset) * 0.01) * 50;
+                ctx.lineTo(x, y);
+            }
+            
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.closePath();
+            ctx.fill();
+            
+            waveOffset += 2;
+            requestAnimationFrame(drawWave);
+        }
+        
+        resizeCanvas();
+        drawWave();
+        
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Floating Particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            
+            setInterval(() => {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.width = particle.style.height = Math.random() * 10 + 5 + 'px';
+                particle.style.animationDuration = Math.random() * 10 + 15 + 's';
+                particle.style.animationDelay = Math.random() * 5 + 's';
+                
+                particlesContainer.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 25000);
+            }, 2000);
+        }
+        
+        createParticles();
+        
+        // Mobile Menu Toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const closeMenu = document.getElementById('closeMenu');
+        const mobileLinks = document.querySelectorAll('.mobile-link');
+        
+        menuToggle.addEventListener('click', () => {
+            mobileMenu.classList.remove('hidden');
+        });
+        
+        closeMenu.addEventListener('click', () => {
+            mobileMenu.classList.add('hidden');
+        });
+        
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+        
+        // Smooth Scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Star Rating System
+        function initializeStarRating() {
+            document.querySelectorAll('.stars-container').forEach(container => {
+                const stars = container.querySelectorAll('.star');
+                const ratingDisplay = container.parentElement.querySelector('.rating-display');
+                let currentRating = parseInt(container.dataset.rating) || 0;
+                
+                // Update star display
+                function updateStars(rating) {
+                    stars.forEach((star, index) => {
+                        if (index < rating) {
+                            star.classList.add('active');
+                        } else {
+                            star.classList.remove('active');
+                        }
+                    });
+                }
+                
+                // Initialize display
+                updateStars(currentRating);
+                if (currentRating > 0) {
+                    ratingDisplay.textContent = `${currentRating}/5 stars`;
+                }
+                
+                // Add click handlers
+                stars.forEach(star => {
+                    star.addEventListener('click', () => {
+                        const rating = parseInt(star.dataset.value);
+                        currentRating = rating;
+                        container.dataset.rating = rating;
+                        updateStars(rating);
+                        ratingDisplay.textContent = `${rating}/5 stars`;
+                    });
+                    
+                    star.addEventListener('mouseenter', () => {
+                        const hoverRating = parseInt(star.dataset.value);
+                        updateStars(hoverRating);
+                    });
+                });
+                
+                container.addEventListener('mouseleave', () => {
+                    updateStars(currentRating);
+                });
+            });
+        }
+        
+        initializeStarRating();
+        
+        // Review Form Submission
+        document.getElementById('reviewForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const spiritName = document.getElementById('spiritName').value;
+            const reviewerName = document.getElementById('reviewerName').value;
+            const reviewText = document.getElementById('reviewText').value;
+            const rating = document.getElementById('newReviewStars').dataset.rating;
+            
+            if (!rating || rating === '0') {
+                alert('Please select a rating!');
+                return;
+            }
+            
+            // Create new review card
+            const reviewsContainer = document.querySelector('#Reviews .container');
+            const newReview = document.createElement('div');
+            newReview.className = 'review-card rounded-xl overflow-hidden mb-8 flex flex-col md:flex-row';
+            newReview.style.opacity = '0';
+            newReview.style.transform = 'translateY(20px)';
+            
+            newReview.innerHTML = `
+                <div class="md:w-1/3 p-6 flex items-center justify-center bg-black bg-opacity-30">
+                    <div class="w-48 h-48 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg flex items-center justify-center">
+                        <i data-feather="bottle" class="w-24 h-24 text-white"></i>
+                    </div>
+                </div>
+                <div class="md:w-2/3 p-8">
+                    <h3 class="text-2xl font-bold mb-2 text-orange-500">${spiritName}</h3>
+                    <div class="flex items-center mb-4">
+                        <div class="stars-container" data-rating="${rating}">
+                            <span class="star ${rating >= 1 ? 'active' : ''}" data-value="1">★</span>
+                            <span class="star ${rating >= 2 ? 'active' : ''}" data-value="2">★</span>
+                            <span class="star ${rating >= 3 ? 'active' : ''}" data-value="3">★</span>
+                            <span class="star ${rating >= 4 ? 'active' : ''}" data-value="4">★</span>
+                            <span class="star ${rating >= 5 ? 'active' : ''}" data-value="5">★</span>
+                        </div>
+                        <span class="rating-display">${rating}/5 stars</span>
+                    </div>
+                    <p class="text-gray-300 mb-6">${reviewText}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-orange-400">Reviewed by ${reviewerName}</span>
+                        <span class="text-gray-400">Comments 0</span>
+                    </div>
+                </div>
+            `;
+            
+            // Insert after the quote
+            const quote = document.querySelector('#Reviews p');
+            quote.parentNode.insertBefore(newReview, quote.nextSibling);
+            
+            // Animate the new review in
+            setTimeout(() => {
+                newReview.style.transition = 'all 0.5s ease';
+                newReview.style.opacity = '1';
+                newReview.style.transform = 'translateY(0)';
+                feather.replace();
+            }, 100);
+            
+            // Reset form
+            this.reset();
+            document.getElementById('newReviewStars').dataset.rating = '0';
+            document.getElementById('newRatingDisplay').textContent = 'Select a rating';
+            document.querySelectorAll('#newReviewStars .star').forEach(star => {
+                star.classList.remove('active');
+            });
+            
+            // Show success message
+            const successMsg = document.createElement('div');
+            successMsg.className = 'fixed top-20 right-6 bg-green-600 text-white px-6 py-3 rounded-lg z-50';
+            successMsg.textContent = 'Review added successfully!';
+            document.body.appendChild(successMsg);
+            
+            setTimeout(() => {
+                successMsg.style.transition = 'opacity 0.5s ease';
+                successMsg.style.opacity = '0';
+                setTimeout(() => successMsg.remove(), 500);
+            }, 3000);
+        });
+        
+        // Contact Form Submission
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show success message
+            const successMsg = document.createElement('div');
+            successMsg.className = 'fixed top-20 right-6 bg-green-600 text-white px-6 py-3 rounded-lg z-50';
+            successMsg.textContent = 'Message sent successfully!';
+            document.body.appendChild(successMsg);
+            
+            setTimeout(() => {
+                successMsg.style.transition = 'opacity 0.5s ease';
+                successMsg.style.opacity = '0';
+                setTimeout(() => successMsg.remove(), 500);
+            }, 3000);
+            
+            this.reset();
+        });
+        
+        // Scroll Animations
+        function animateOnScroll() {
+            const elements = document.querySelectorAll('.review-card, .section h2, .section p');
+            
+            elements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const elementVisible = 150;
+                
+                if (elementTop < window.innerHeight - elementVisible) {
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }
+            });
+        }
+        
+        // Initialize scroll animations
+        document.querySelectorAll('.review-card, .section h2, .section p').forEach(element => {
+            element.style.opacity = '0';
+            element.style.transform = 'translateY(30px)';
+            element.style.transition = 'all 0.6s ease';
+        });
+        
+        window.addEventListener('scroll', animateOnScroll);
+        animateOnScroll(); // Initial check
+        
+        // Navigation Active State
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.getBoundingClientRect().top;
+                if (sectionTop <= 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('text-orange-400');
+                link.classList.add('text-white');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.remove('text-white');
+                    link.classList.add('text-orange-400');
+                }
+            });
+        });
+        
+        // Add some interactive hover effects
+        document.querySelectorAll('.review-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.borderColor = 'rgba(249, 115, 22, 0.5)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.borderColor = 'rgba(249, 115, 22, 0.2)';
+            });
+        });
+        
+        // Loading animation for the page
+        window.addEventListener('load', () => {
+            document.body.style.opacity = '0';
+            document.body.style.transition = 'opacity 1s ease';
+            setTimeout(() => {
+                document.body.style.opacity = '1';
+            }, 100);
+        });
+    </script>
+
+    <form action="https://api.web3forms.com/submit" method="POST" class="space-y-4">
+    <input type="hidden" name="access_key" value="a06e983c-e088-49c2-b912-f3b313d1c242">
+
+    <input type="text" name="name" placeholder="Your Name" required class="form-input p-3 rounded-lg w-full">
+    <input type="email" name="email" placeholder="Your Email" required class="form-input p-3 rounded-lg w-full">
+    <input type="text" name="subject" placeholder="Subject" required class="form-input p-3 rounded-lg w-full">
+    <textarea name="message" placeholder="Your Message" required class="form-input p-3 rounded-lg w-full h-32 resize-none"></textarea>
+
+    <button type="submit" class="btn-primary text-white font-bold py-3 px-6 rounded-full w-full">
+        Send Message
+    </button>
+    </form>
+
 </body>
 </html>
