@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Review System</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h2>Submit a Review</h2>
+  <form id="reviewForm">
+    <input type="text" id="name" placeholder="Your name" required><br>
+    <textarea id="message" placeholder="Your review" required></textarea><br>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Approved Reviews</h2>
+  <ul id="reviewsList"></ul>
+
+  <script>
+    const SUPABASE_URL = "https://ovbztgieikmpuyenepnu.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92Ynp0Z2llaWttcHV5ZW5lcG51Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3Mzk4MjgsImV4cCI6MjA3MjMxNTgyOH0.oVz5i0lq3sbpn4i0DPSc9aG3LiWdYUuzC4A6ZsA_8iE"; 
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Submit review
+    document.getElementById("reviewForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const message = document.getElementById("message").value;
+
+      let { error } = await supabase.from("reviews").insert([{ name, message }]);
+      if (error) {
+        alert("Error: " + error.message);
+      } else {
+        alert("Review submitted! Waiting for approval.");
+        e.target.reset();
+      }
+    });
+
+    // Fetch approved reviews
+    async function loadReviews() {
+      let { data, error } = await supabase.from("reviews").select("*").order("created_at", { ascending: false });
+      if (!error) {
+        const list = document.getElementById("reviewsList");
+        list.innerHTML = "";
+        data.forEach(r => {
+          const li = document.createElement("li");
+          li.textContent = `${r.name}: ${r.message}`;
+          list.appendChild(li);
+        });
+      }
+    }
+
+    loadReviews();
+  </script>
+</body>
+</html>
