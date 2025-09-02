@@ -383,9 +383,8 @@
         <div class="contact-form rounded-xl p-8 bg-gray-900 shadow-lg">
             <h3 class="text-2xl font-bold mb-6 text-orange-500">Send us a Message</h3>
 
-            <!-- Web3Forms: replace access_key with your real one -->
-            <form id="contactForm" action="https://api.web3forms.com/submit" method="POST" class="space-y-4">
-            <input type="hidden" name="access_key" value="a06e983c-e088-49c2-b912-f3b313d1c242">
+            <!-- Formspree: send the message through email -->
+            <form id="contactForm" action="https://formspree.io/f/your_form_id" method="POST" class="space-y-4">
 
             <input 
                 type="text" 
@@ -677,3 +676,4 @@
   </script>
 </body>
 </html>
+
