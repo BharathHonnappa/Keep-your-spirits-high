@@ -600,7 +600,7 @@
       showToast('Review added successfully!', 'success');
     });
 
-    // Contact form (Web3Forms) — SINGLE handler (no duplicates)
+   // Contact form handler for Formspree
     const contactForm = document.getElementById('contactForm');
     const successMessage = document.getElementById('successMessage');
     function showToast(msg, type='success') {
@@ -610,24 +610,85 @@
       setTimeout(() => { toast.className = 'toast'; }, 3000);
     }
 
+    // Email validation function
+    function isValidEmail(email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    }
+
     contactForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const formData = new FormData(contactForm);
+      
+      // Get form values and validate
+      const name = contactForm.name.value.trim();
+      const email = contactForm.email.value.trim();
+      const subject = contactForm.subject.value.trim();
+      const message = contactForm.message.value.trim();
+      
+      // Client-side validation
+      if (!name || name.length < 2) {
+        showToast('❌ Please enter a valid name (at least 2 characters).', 'error');
+        return;
+      }
+      
+      if (!email || !isValidEmail(email)) {
+        showToast('❌ Please enter a valid email address.', 'error');
+        return;
+      }
+      
+      if (!subject || subject.length < 3) {
+        showToast('❌ Please enter a subject (at least 3 characters).', 'error');
+        return;
+      }
+      
+      if (!message || message.length < 10) {
+        showToast('❌ Please enter a message (at least 10 characters).', 'error');
+        return;
+      }
+      
+      // Get the submit button for loading state
+      const submitBtn = contactForm.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      
       try {
-        const res = await fetch(contactForm.action, { method: contactForm.method, body: formData });
-        if (res.ok) {
+        // Show loading state
+        submitBtn.textContent = 'Sending...';
+        submitBtn.disabled = true;
+
+        // Submit to Formspree
+        const formData = new FormData(contactForm);
+        const response = await fetch(contactForm.action, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+
+        if (response.ok) {
           contactForm.reset();
           successMessage.classList.remove('hidden');
-          showToast('✅ Thank you! Your message has been sent.', 'success');
-          setTimeout(() => successMessage.classList.add('hidden'), 4000);
+          showToast('✅ Thank you! Your message has been sent successfully.', 'success');
+          setTimeout(() => successMessage.classList.add('hidden'), 5000);
         } else {
-          showToast('❌ Oops! Something went wrong.', 'error');
+          const data = await response.json();
+          console.error('Formspree error:', data);
+          if (data.errors && data.errors.length > 0) {
+            const errorMsg = data.errors[0].message || 'Please check your form fields.';
+            showToast(`❌ ${errorMsg}`, 'error');
+          } else {
+            showToast('❌ Form submission failed. Please try again.', 'error');
+          }
         }
-      } catch (err) {
-        showToast('⚠️ Network error. Try again later.', 'error');
+      } catch (error) {
+        console.error('Network error:', error);
+        showToast('⚠️ Network error. Please check your connection and try again.', 'error');
+      } finally {
+        // Reset button state
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
       }
     });
-
     // Scroll animations
     function prepScrollAnims() {
       document.querySelectorAll('.review-card, .section h2, .section p').forEach(el => {
@@ -676,5 +737,6 @@
   </script>
 </body>
 </html>
+
 
 
